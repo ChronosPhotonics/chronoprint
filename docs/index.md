@@ -324,7 +324,7 @@ while True:
         speed = input("\r\nFan Speed (%): ")
         printer.resume_session()
         if speed.isnumeric():
-            printer.fan_speed = speed
+            printer.fan_speed_target = speed
 
     if key == "r":
         printer.refresh()
