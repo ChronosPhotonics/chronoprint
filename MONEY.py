@@ -20,6 +20,7 @@ hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
 serial_number = os.getenv('BAMBU_SERIAL_NUMBER')
 fname = "/base_auto_v03.gcode.3mf"
+fname_calib = "/base_auto_v03_calib.gcode.3mf"
 
 def on_update(printer):
     global gcodeState, completedJobs, subscribed, jobSent
@@ -55,7 +56,7 @@ def print_status():
           f"%=[{printer.percent_complete}] eta=[{printer.time_remaining} min] " +
           f"spool=[{printer.active_spool} ({printer.spool_state})]\r")
 
-def send_job():
+def send_job(fname=fname):
     printer.print_3mf_file(fname, 1, PlateType.HOT_PLATE, False, "", False, False, False)
 
 def confirm(request):
@@ -76,7 +77,10 @@ while True:
         break
     if key == "b":
         if confirm("START JOB"):
-                send_job()
+                if confirm("LEVEL BED"):
+                    send_job(fname_calib)
+                else:
+                    send_job()
                 print(f"\rJob sent to printer")
     if key == "s":
         print(f"\r{subscribed*'UN'}"+"SUBSCRIBED")
