@@ -19,8 +19,8 @@ jobSent = False
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
 serial_number = os.getenv('BAMBU_SERIAL_NUMBER')
-fname = "/base_auto_v03.gcode.3mf"
-fname_calib = "/base_auto_v03_calib.gcode.3mf"
+fname = "/base_auto_v05.gcode.3mf"
+fname_calib = "/base_auto_v04_calib.gcode.3mf"
 
 def on_update(printer):
     global gcodeState, completedJobs, subscribed, jobSent
@@ -35,8 +35,8 @@ def on_update(printer):
         jobSent = False
         if subscribed:
             print_status()
-        if printer.speed_level != 4 and printer.current_layer >= 6:
-            printer.speed_level = 4
+        #if printer.speed_level != 4 and printer.current_layer >= 10:
+        #    printer.speed_level = 4
         
     elif gcodeState == "FINISH" and not jobSent:
         send_job()
