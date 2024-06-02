@@ -12,6 +12,7 @@ from bpm.bambutools import parseStage
 from bpm.bambutools import parseFan
 from bpm.bambutools import PlateType
 
+global gcodeState, completedJobs, subscribed, jobSent, fname
 gcodeState = ""
 completedJobs = 0
 subscribed = False
@@ -23,7 +24,6 @@ fname = "/base_auto_v05.gcode.3mf"
 fname_calib = "/base_auto_v04_calib.gcode.3mf"
 
 def on_update(printer):
-    global gcodeState, completedJobs, subscribed, jobSent
     if gcodeState != printer.gcode_state:
         if gcodeState != "":
             print(f"\rState changed to: {printer.gcode_state} at {time.strftime('%H:%M:%S')}")
@@ -85,5 +85,11 @@ while True:
     if key == "s":
         print(f"\r{subscribed*'UN'}"+"SUBSCRIBED")
         subscribed = not subscribed
+
+    if key == "p":
+        name = input("\r\n3MF filename to print: ")
+        if len(name) > 0:
+            fname = name
+            send_job()
 
 printer.quit()
