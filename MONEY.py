@@ -12,7 +12,6 @@ from bpm.bambutools import parseStage
 from bpm.bambutools import parseFan
 from bpm.bambutools import PlateType
 
-global gcodeState, completedJobs, subscribed, jobSent, fname
 gcodeState = ""
 completedJobs = 0
 subscribed = False
@@ -20,10 +19,11 @@ jobSent = False
 hostname = os.getenv('BAMBU_HOSTNAME')
 access_code = os.getenv('BAMBU_ACCESS_CODE')
 serial_number = os.getenv('BAMBU_SERIAL_NUMBER')
-fname = "/base_auto_v05.gcode.3mf"
-fname_calib = "/base_auto_v04_calib.gcode.3mf"
+fname = "/cap_auto_v08.gcode.3mf"
+fname_calib = "/cap_auto_v08_calib.gcode.3mf"
 
 def on_update(printer):
+    global gcodeState, completedJobs, subscribed, jobSent, fname
     if gcodeState != printer.gcode_state:
         if gcodeState != "":
             print(f"\rState changed to: {printer.gcode_state} at {time.strftime('%H:%M:%S')}")
@@ -39,7 +39,7 @@ def on_update(printer):
         #    printer.speed_level = 4
         
     elif gcodeState == "FINISH" and not jobSent:
-        send_job()
+        send_job(fname)
         jobSent = True
         completedJobs += 1
         print(f"\rJob completed at {time.strftime('%H:%M:%S')}. Completed jobs: {completedJobs}")
@@ -80,7 +80,7 @@ while True:
                 if confirm("LEVEL BED"):
                     send_job(fname_calib)
                 else:
-                    send_job()
+                    send_job(fname)
                 print(f"\rJob sent to printer")
     if key == "s":
         print(f"\r{subscribed*'UN'}"+"SUBSCRIBED")
@@ -90,6 +90,5 @@ while True:
         name = input("\r\n3MF filename to print: ")
         if len(name) > 0:
             fname = name
-            send_job()
 
 printer.quit()
