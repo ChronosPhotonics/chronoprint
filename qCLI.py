@@ -109,8 +109,9 @@ class Printer(BambuPrinter):
     queue: PrintQ
     _gcode_state_cache: PrinterState
 
-    def __init__(self):
-        self._gcode_state_cache == self.gcode_state
+    def __init__(self, config):
+        super().__init__(config=config)
+        self._gcode_state_cache = self.gcode_state
         self.loud_sensors = False
         self.loud_status = False
         self._job_sent = False
