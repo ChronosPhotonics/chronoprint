@@ -280,7 +280,7 @@ def main():
                     if arg == "help":
                         print("subscribe [channel] - Toggles subscription. Channels: printer | queue | status")
                     else:
-                        channel = get_command(arg, printer.subscribed.keys())
+                        channel = get_command(arg, subs.chans.keys())
                         if channel:
                             print(f'Subscribed to {channel}' if subs.toggle_chan(channel) else f'Unsubscribed from {channel}')
                 else:
