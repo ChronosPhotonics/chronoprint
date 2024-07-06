@@ -121,6 +121,7 @@ class Printer(BambuPrinter):
         if self._gcode_state_cache != self.gcode_state:
             if self.loud_status:
                 print(f"\rState changed to: {self.gcode_state} at {time.strftime('%H:%M:%S')}")
+                self._gcode_state_cache = self.gcode_state
             if self.gcode_state != "FINISH":
                 self._job_sent = False
             else:
@@ -184,7 +185,7 @@ class Subscriptions():
                 self._printer.loud_status = self.chans["status"]
                 print(f"\rGcode state is: {self._printer.gcode_state} at {time.strftime('%H:%M:%S')}")
             elif chan == "queue":
-                self._printer._queue.loud = self.chans["queue"]
+                self._printer.queue.loud = self.chans["queue"]
             return self.chans[chan]
 
 commands = {
@@ -251,11 +252,12 @@ def main():
                         queue.pause()
                     elif queue_cmd == "newentry":
                         filename = input("Enter 3MF filename: ").strip()
-                        if filename in printer.get_sdcard_3mf_files():
-                            quantity = int(input("Enter print quantity: ").strip())
-                            queue.add_entry(filename, quantity)
-                        else:
-                            print(f"File {filename} not found on SD card.")
+                        printer.get_sdcard_3mf_files()
+                        #if filename in printer._sdcard_3mf_files:
+                        quantity = int(input("Enter print quantity: ").strip())
+                        queue.add_entry(filename, quantity)
+                        #else:
+                        #    print(f"File {filename} not found on SD card.")
                     elif queue_cmd == "rmentry":
                         entry_id = int(input("Enter entry ID to remove: ").strip())
                         queue.remove_entry(entry_id)
