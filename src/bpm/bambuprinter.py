@@ -280,7 +280,7 @@ class BambuPrinter:
             logger.debug("mqtt client was already disconnected")
 
         self._state == PrinterState.QUIT
-        if self.on_update: self.on_update(self)
+        if self.on_update: self.on_update()
 
         if self._mqtt_client_thread.is_alive(): self._mqtt_client_thread.join()
         if self._watchdog_thread.is_alive(): self._watchdog_thread.join()
@@ -918,7 +918,7 @@ class BambuPrinter:
             if (self._start_time == 0): self._start_time = int(round(time.time() / 60, 0))
             self._elapsed_time = int(round(time.time() / 60, 0)) - self._start_time
 
-        if self.on_update: self.on_update(self)
+        if self.on_update: self.on_update()
 
     def _get_sftp_files(self, ftps: IoTFTPSClient, directory: str, mask: Optional[str] = None):
         try:
