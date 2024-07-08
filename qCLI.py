@@ -24,9 +24,11 @@ serial_number = os.getenv('BAMBU_SERIAL_NUMBER')
 #fname_calib = "/cap_auto_v08_calib.gcode.3mf"
 
 class Status(Enum):
+    ERROR   =-1
     IDLE    = 0
-    RUNNING = 1
-    ERROR   = 2
+    RUN     = 1
+    START   = 2
+    PAUSE   = 3
 
 class PrintQ():
     _status: Status
@@ -52,13 +54,23 @@ class PrintQ():
         self._entries.append([file,count,count])
 
     def start(self):
-        if self._entries and self._status != Status.RUNNING:
+        if self._entries and not self._status in {Status.RUN, Status.START}:
             # set running status directly to trigger cache mismatch in printer.on_update
-            self._status = Status.RUNNING
-        elif self._status == Status.RUNNING:
+            self.set_status(Status.START)
+        elif self._status == Status.RUN:
             print("Queue is already running")
+        elif self._status == Status.START:
+            print("Queue is already starting")
         elif not self._entries:
             print("Cannot start an empty queue")
+
+    def pause(self):
+        if self._entries and self._status in {Status.RUN, Status.START}:
+             self.set_status(Status.PAUSE)
+        elif not self._entries:
+             print("Cannot pause an empty queue")
+        elif self._status in {Status.PAUSE, Status.ERROR, Status.IDLE}:
+             print(f"\rCannot pause queue with status {self._status.name}")
 
     def set_status(self,status):
         self._status = status
@@ -68,7 +80,7 @@ class PrintQ():
 
     def _announce_status(self):
         if self.loud:
-            print(f"\rQueue changed to status: {self._status.name}")
+            print(f"\rQueue status is currently {self._status.name}")
 
     def _announce_job(self):
         if self.loud:
@@ -89,7 +101,10 @@ class PrintQ():
                 if self._entries:
                     return self._entries[0][0]
                 else:
+                    print("Queue emptied")
                     return None
+            else:
+                return self._entries[0][0]
         else:
             return None
 
@@ -99,8 +114,7 @@ class PrintQ():
                 self._entries[0][2] -= 1
                 self._announce_job()
             else:
-                
-                self._entries.pop(0)
+                pass
 
 class Printer(BambuPrinter):
     loud_sensors: bool
@@ -125,13 +139,13 @@ class Printer(BambuPrinter):
             if self.gcode_state != "FINISH":
                 self._job_sent = False
             else:
-                if self.queue._status == Status.RUNNING:
+                if self.queue._status == Status.RUN:
                     self.queue.decrement_job()
                 if self.job_sent == False:
                     self.queue.set_status(
                         self.send_job(self.queue.get_nextjob())
                         )
-        elif self.queue._status != self.queue._status_cache:
+        elif self.queue._status == Status.START:
             self.queue.set_status(
                         self.send_job(self.queue.get_nextjob())
                         )
@@ -157,7 +171,11 @@ class Printer(BambuPrinter):
             if self.gcode_state == "FINISH" and not self._job_sent:
                 self.print_3mf_file(fname, 1, PlateType.HOT_PLATE, False, "", False, False, False)
                 self._job_sent = True
-                return Status.RUNNING
+                return Status.RUN
+            elif self.gcode_state != "RUNNING" and self.queue._status == Status.START and not self._job_sent:
+                self.print_3mf_file(fname, 1, PlateType.HOT_PLATE, False, "", False, False, False)
+                self._job_sent = True
+                return Status.RUN
             else:
                 print("\rerror: could not send job")
                 return Status.ERROR
@@ -250,7 +268,7 @@ def main():
                         queue.start()
                     elif queue_cmd == "pause":
                         queue.pause()
-                    elif queue_cmd == "newentry":
+                    elif queue_cmd == "add":
                         filename = input("Enter 3MF filename: ").strip()
                         printer.get_sdcard_3mf_files()
                         #if filename in printer._sdcard_3mf_files:
@@ -258,19 +276,19 @@ def main():
                         queue.add_entry(filename, quantity)
                         #else:
                         #    print(f"File {filename} not found on SD card.")
-                    elif queue_cmd == "rmentry":
+                    elif queue_cmd == "rm":
                         entry_id = int(input("Enter entry ID to remove: ").strip())
                         queue.remove_entry(entry_id)
                     else:
-                        print("Usage: queue [start | pause | newentry | rmentry]")
+                        print("Usage: queue [start | pause | add | rm]")
                 else:
-                    print("Usage: queue [start | pause | newentry | rmentry]")
+                    print("Usage: queue [start | pause | add | rm]")
 
             elif cmd == "print":
                 if len(cmd_input) > 1:
-                    filename = cmd_input[1]
-                    if queue.status != Status.RUNNING:
-                        printer.print_3mf_file(filename)
+                    fname = cmd_input[1]
+                    if queue._status != Status.RUN:
+                         printer.print_3mf_file(fname, 1, PlateType.HOT_PLATE, False, "", False, False, False)
                     else:
                         print("Cannot send print while queue is running")
                 else:
