@@ -96,7 +96,7 @@ class PrintQ():
     def get_nextjob(self):
         if self._entries:
             if self._entries[0][2] == 0: #delete first entry if all jobs are completed
-                print(f"\rCompleted {self.entries[0][1]} units of {self.entries[0][0]}")
+                print(f"\rCompleted {self._entries[0][1]} units of {self._entries[0][0]}")
                 self._entries.pop(0)
                 if self._entries:
                     return self._entries[0][0]
