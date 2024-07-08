@@ -84,7 +84,7 @@ class PrintQ():
 
     def _announce_job(self):
         if self.loud:
-            print(f"\r{self._entries[0][2]}/{self._entries[0][1]} for file {self._entries[0][0]}")
+            print(f"\r{self._entries[0][1]-self._entries[0][2]}/{self._entries[0][1]} for file {self._entries[0][0]}")
 
     def remove_entry(self):
         if self.entries:
