@@ -141,7 +141,7 @@ class Printer(BambuPrinter):
             else:
                 if self.queue._status == Status.RUN:
                     self.queue.decrement_job()
-                if self.job_sent == False:
+                if self._job_sent == False:
                     self.queue.set_status(
                         self.send_job(self.queue.get_nextjob())
                         )
