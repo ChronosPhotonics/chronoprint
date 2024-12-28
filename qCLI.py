@@ -177,7 +177,7 @@ class Printer(BambuPrinter):
                 self._job_sent = True
                 return Status.RUN
             else:
-                print("\rerror: could not send job")
+                print("\rWarning: Could not send job. Queue will try to start when current job ends.")
                 return Status.ERROR
         else:
             return Status.IDLE
