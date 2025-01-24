@@ -135,13 +135,11 @@ class Printer(BambuPrinter):
         if self._gcode_state_cache != self.gcode_state:
             if self.loud_status:
                 print(f"\rState changed to: {self.gcode_state} at {time.strftime('%H:%M:%S')}")
-                self._gcode_state_cache = self.gcode_state
-            if self.gcode_state != "FINISH":
-                self._job_sent = False
-            else:
+            self._gcode_state_cache = self.gcode_state
+            if self.gcode_state == "FINISH":
                 if self.queue._status == Status.RUN:
                     self.queue.decrement_job()
-                if self._job_sent == False:
+                    self._job_sent = False
                     self.queue.set_status(
                         self.send_job(self.queue.get_nextjob())
                         )
@@ -168,7 +166,7 @@ class Printer(BambuPrinter):
 
     def send_job(self, fname):
         if fname:
-            if self.gcode_state == "FINISH" and not self._job_sent:
+            if (self.gcode_state == "FINISH" or self.gcode_state == "IDLE") and not self._job_sent:
                 self.print_3mf_file(fname, 1, PlateType.HOT_PLATE, False, "", False, False, False)
                 self._job_sent = True
                 return Status.RUN
